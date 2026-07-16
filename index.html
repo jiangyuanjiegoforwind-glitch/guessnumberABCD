@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>数字侦探</title>
+  <style>
+    :root {
+      --page: #ffffff;
+      --surface: #ffffff;
+      --surface-soft: #f5f7f6;
+      --surface-warm: #fbf6ef;
+      --border: #e1e5e3;
+      --border-strong: #cdd3d0;
+      --text: #202623;
+      --text-soft: #69716d;
+      --text-faint: #69716d;
+      --accent: #176b53;
+      --accent-hover: #105640;
+      --accent-soft: #e9f4ef;
+      --warning: #9a541b;
+      --warning-soft: #fbefe2;
+      --danger: #a53b36;
+      --danger-soft: #fbeceb;
+      --shadow: 0 16px 42px rgba(30, 42, 36, 0.08);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      letter-spacing: 0;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--page);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background: var(--page);
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    select {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 3px solid rgba(23, 107, 83, 0.18);
+      outline-offset: 2px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .app-shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 28px 32px 44px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 48px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      color: #ffffff;
+      background: var(--accent);
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .brand-copy h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 760;
+    }
+
+    .brand-copy p {
+      margin: 3px 0 0;
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease,
+        transform 160ms ease, box-shadow 160ms ease;
+      font-weight: 700;
+    }
+
+    .button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.46;
+    }
+
+    .button-primary {
+      color: #ffffff;
+      background: var(--accent);
+      box-shadow: 0 7px 16px rgba(23, 107, 83, 0.16);
+    }
+
+    .button-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 9px 20px rgba(23, 107, 83, 0.22);
+    }
+
+    .button-secondary {
+      color: var(--text);
+      background: #ffffff;
+      border-color: var(--border);
+    }
+
+    .button-secondary:hover:not(:disabled) {
+      color: var(--accent);
+      border-color: #a8c3b9;
+      background: var(--accent-soft);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(29, 39, 34, 0.045);
+    }
+
+    /* 开局输入区 */
+    .setup-wrap {
+      display: grid;
+      min-height: calc(100vh - 152px);
+      place-items: start center;
+      padding-top: clamp(24px, 8vh, 88px);
+    }
+
+    .setup-card {
+      width: min(680px, 100%);
+      padding: 34px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-kicker {
+      margin: 0 0 7px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .setup-card h2,
+    .section-heading h2,
+    .section-heading h3 {
+      margin: 0;
+      line-height: 1.25;
+    }
+
+    .setup-card h2 {
+      font-size: 26px;
+    }
+
+    .equation {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      margin: 10px 0 0;
+      padding: 0 10px;
+      color: var(--text-soft);
+      background: var(--surface-soft);
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .game-rules {
+      margin-top: 22px;
+      padding: 16px 18px;
+      background: var(--surface-soft);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .game-rules h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    .rules-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .rules-list li {
+      padding-left: 2px;
+    }
+
+    .rules-list li::marker {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .setup-inputs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .number-field label,
+    .select-field label,
+    .guess-field label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .number-input,
+    .guess-input,
+    .select-control {
+      width: 100%;
+      height: 48px;
+      color: var(--text);
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    .number-input,
+    .guess-input {
+      padding: 0 12px;
+      appearance: textfield;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 750;
+    }
+
+    .number-input::-webkit-inner-spin-button,
+    .number-input::-webkit-outer-spin-button,
+    .guess-input::-webkit-inner-spin-button,
+    .guess-input::-webkit-outer-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+
+    .number-input:hover,
+    .guess-input:hover,
+    .select-control:hover {
+      border-color: #aeb7b2;
+    }
+
+    .number-input:focus,
+    .guess-input:focus,
+    .select-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 107, 83, 0.1);
+    }
+
+    .setup-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 54px;
+      margin: 18px 0;
+      padding: 0 15px;
+      background: var(--surface-soft);
+      border: 1px solid transparent;
+      border-radius: 7px;
+    }
+
+    .setup-status.is-valid {
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-color: #c8e2d8;
+    }
+
+    .setup-status.is-invalid {
+      color: var(--danger);
+      background: var(--danger-soft);
+      border-color: #efd1cf;
+    }
+
+    .sum-value {
+      flex: 0 0 auto;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .validation-message {
+      margin-left: 16px;
+      color: inherit;
+      text-align: right;
+      font-size: 13px;
+    }
+
+    .setup-card .button-primary {
+      width: 100%;
+    }
+
+    /* 游戏主区域 */
+    .game-view {
+      animation: view-in 260ms ease both;
+    }
+
+    @keyframes view-in {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .number-panel {
+      min-width: 0;
+      padding: 22px;
+    }
+
+    .panel-heading,
+    .section-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .panel-heading {
+      margin-bottom: 16px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .panel-meta,
+    .history-count {
+      color: var(--text-soft);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .number-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      overflow: hidden;
+      background: var(--surface-soft);
+      border: 1px solid #edf0ee;
+      border-radius: 7px;
+    }
+
+    .number-cell {
+      display: grid;
+      min-width: 0;
+      min-height: 76px;
+      place-items: center;
+      align-content: center;
+      padding: 8px 4px;
+      border-right: 1px solid var(--border);
+    }
+
+    .number-cell:last-child {
+      border-right: 0;
+    }
+
+    .number-label {
+      color: var(--text-soft);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .number-value {
+      min-width: 1.25em;
+      margin-top: 3px;
+      overflow: hidden;
+      font-size: 24px;
+      line-height: 1.1;
+      font-weight: 780;
+      text-align: center;
+      text-overflow: ellipsis;
+    }
+
+    .computer-panel .number-strip {
+      background: var(--surface-warm);
+      border-color: #f1e8db;
+    }
+
+    .computer-panel .number-value {
+      color: var(--warning);
+    }
+
+    .question-card {
+      margin-top: 16px;
+      padding: 24px;
+    }
+
+    .section-heading {
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .section-heading h2,
+    .section-heading h3 {
+      font-size: 17px;
+    }
+
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: min(420px, 100%);
+      min-height: 42px;
+      margin-bottom: 20px;
+      padding: 3px;
+      background: #eef1ef;
+      border-radius: 7px;
+    }
+
+    .mode-tab {
+      min-width: 0;
+      color: var(--text-soft);
+      background: transparent;
+      border: 0;
+      border-radius: 5px;
+      transition: color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .mode-tab:hover {
+      color: var(--text);
+    }
+
+    .mode-tab[aria-selected="true"] {
+      color: var(--accent);
+      background: #ffffff;
+      box-shadow: 0 2px 7px rgba(30, 43, 37, 0.1);
+    }
+
+    .mode-panel {
+      min-height: 126px;
+    }
+
+    .compare-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr) minmax(112px, 0.45fr);
+      align-items: end;
+      gap: 12px;
+    }
+
+    .select-control {
+      padding: 0 38px 0 13px;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #7d8581 50%),
+        linear-gradient(135deg, #7d8581 50%, transparent 50%);
+      background-position: calc(100% - 16px) 21px, calc(100% - 11px) 21px;
+      background-repeat: no-repeat;
+      background-size: 5px 5px, 5px 5px;
+      font-weight: 700;
+    }
+
+    .versus {
+      display: grid;
+      width: 54px;
+      height: 48px;
+      place-items: center;
+      color: var(--text-faint);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .compare-button {
+      width: 100%;
+      height: 48px;
+    }
+
+    .pair-line {
+      grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr) minmax(112px, 0.45fr);
+    }
+
+    .pair-group-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pair-selects {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+      align-items: center;
+      gap: 4px;
+    }
+
+    .plus-sign {
+      color: var(--text-soft);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .comparison-result {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      margin-top: 18px;
+      padding: 10px 16px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid #cfe3da;
+      border-radius: 7px;
+      font-size: 18px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .comparison-result.is-empty {
+      color: var(--text-faint);
+      background: var(--surface-soft);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .lower-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .history-card,
+    .guess-card {
+      min-width: 0;
+      padding: 22px;
+    }
+
+    .history-list {
+      height: 282px;
+      margin: 0;
+      padding: 0;
+      overflow-y: auto;
+      list-style: none;
+      scrollbar-color: #c7ceca transparent;
+      scrollbar-width: thin;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      align-items: center;
+      min-height: 46px;
+      border-top: 1px solid #edf0ee;
+      animation: history-in 180ms ease both;
+    }
+
+    .history-item:first-child {
+      border-top: 0;
+    }
+
+    @keyframes history-in {
+      from {
+        opacity: 0;
+        transform: translateY(3px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .history-index {
+      color: var(--text-faint);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .history-text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .empty-history {
+      display: grid;
+      height: 100%;
+      place-items: center;
+      color: var(--text-faint);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .guess-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .guess-input {
+      height: 44px;
+      font-size: 16px;
+    }
+
+    .guess-card .button-primary {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .answer-feedback {
+      display: flex;
+      align-items: center;
+      min-height: 48px;
+      margin-top: 12px;
+      padding: 9px 12px;
+      color: var(--text-soft);
+      background: var(--surface-soft);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .answer-feedback.is-wrong {
+      color: var(--warning);
+      background: var(--warning-soft);
+      border-color: #efd9c1;
+      font-weight: 700;
+    }
+
+    /* 猜中后的结果弹窗 */
+    .success-dialog {
+      width: min(430px, calc(100% - 32px));
+      padding: 0;
+      color: var(--text);
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(25, 36, 30, 0.24);
+    }
+
+    .success-dialog::backdrop {
+      background: rgba(26, 34, 30, 0.46);
+    }
+
+    .dialog-content {
+      padding: 30px;
+    }
+
+    .dialog-badge {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      margin-bottom: 18px;
+      place-items: center;
+      color: #ffffff;
+      background: var(--accent);
+      border-radius: 7px;
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .dialog-content h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .dialog-copy {
+      margin: 7px 0 20px;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .revealed-answer {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      overflow: hidden;
+      margin-bottom: 22px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+    }
+
+    .revealed-item {
+      min-width: 0;
+      padding: 12px 4px;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .revealed-item:last-child {
+      border-right: 0;
+    }
+
+    .revealed-item span {
+      display: block;
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .revealed-item strong {
+      display: block;
+      min-width: 0;
+      margin-top: 2px;
+      overflow: hidden;
+      font-size: 20px;
+      text-overflow: ellipsis;
+    }
+
+    .dialog-content .button-primary {
+      width: 100%;
+    }
+
+    @media (max-width: 900px) {
+      .lower-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-list {
+        height: 240px;
+      }
+    }
+
+    @media (max-width: 740px) {
+      .app-shell {
+        padding: 20px 20px 34px;
+      }
+
+      .score-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .compare-line,
+      .pair-line {
+        grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+      }
+
+      .compare-button {
+        grid-column: 1 / -1;
+        margin-top: 2px;
+      }
+
+      .versus {
+        width: 44px;
+      }
+
+      .mode-panel {
+        min-height: 186px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .app-shell {
+        padding: 16px 14px 28px;
+      }
+
+      .app-header {
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+
+      .brand-copy h1 {
+        font-size: 19px;
+      }
+
+      .brand-copy p {
+        display: none;
+      }
+
+      .brand-mark {
+        flex-basis: 38px;
+        width: 38px;
+        height: 38px;
+      }
+
+      .app-header .button {
+        min-height: 38px;
+        padding: 0 11px;
+        font-size: 13px;
+      }
+
+      .setup-wrap {
+        min-height: calc(100vh - 112px);
+        padding-top: 18px;
+      }
+
+      .setup-card,
+      .question-card,
+      .history-card,
+      .guess-card,
+      .number-panel {
+        padding: 18px;
+      }
+
+      .setup-card h2 {
+        font-size: 22px;
+      }
+
+      .setup-inputs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .rules-list {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .setup-status {
+        align-items: flex-start;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      .validation-message {
+        margin-left: 0;
+        text-align: left;
+      }
+
+      .number-cell {
+        min-height: 68px;
+      }
+
+      .number-value {
+        font-size: 21px;
+      }
+
+      .question-card {
+        margin-top: 12px;
+      }
+
+      .lower-grid {
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .compare-line,
+      .pair-line {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .versus {
+        width: 100%;
+        height: 18px;
+      }
+
+      .compare-button {
+        grid-column: auto;
+      }
+
+      .mode-panel {
+        min-height: 296px;
+      }
+
+      #single-mode-panel {
+        min-height: 256px;
+      }
+
+      .comparison-result {
+        font-size: 16px;
+      }
+
+      .success-dialog .dialog-content {
+        padding: 24px 20px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">20</span>
+        <div class="brand-copy">
+          <h1>数字侦探</h1>
+          <p>四数推理挑战</p>
+        </div>
+      </div>
+      <button class="button button-secondary" id="reset-game-button" type="button" hidden>重新开始</button>
+    </header>
+
+    <section class="setup-wrap" id="setup-view" aria-labelledby="setup-title">
+      <div class="setup-card card">
+        <p class="section-kicker">玩家设置</p>
+        <h2 id="setup-title">输入你的四个数字</h2>
+        <p class="equation">A + B + C + D = 20</p>
+
+        <section class="game-rules" id="game-rules" aria-labelledby="rules-title">
+          <h3 id="rules-title">游戏规则</h3>
+          <ol class="rules-list">
+            <li>双方各有四个 0–20 的整数，总和必须为 20；数字可以为 0，也可以重复。</li>
+            <li>可比较单个数字，或双方各自两个不同数字之和；结果只显示大小关系。</li>
+            <li>电脑数字始终隐藏；答案错误时，只提示猜对了几个位置。</li>
+          </ol>
+        </section>
+
+        <div class="setup-inputs">
+          <div class="number-field">
+            <label for="player-input-a">A</label>
+            <input class="number-input" id="player-input-a" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 A">
+          </div>
+          <div class="number-field">
+            <label for="player-input-b">B</label>
+            <input class="number-input" id="player-input-b" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 B">
+          </div>
+          <div class="number-field">
+            <label for="player-input-c">C</label>
+            <input class="number-input" id="player-input-c" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 C">
+          </div>
+          <div class="number-field">
+            <label for="player-input-d">D</label>
+            <input class="number-input" id="player-input-d" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 D">
+          </div>
+        </div>
+
+        <div class="setup-status" id="setup-status" aria-live="polite">
+          <strong class="sum-value">总和 <span id="player-sum">0</span> / 20</strong>
+          <span class="validation-message" id="player-validation-message">请填写 4 个数字</span>
+        </div>
+
+        <button class="button button-primary" id="start-game-button" type="button" disabled>开始游戏</button>
+      </div>
+    </section>
+
+    <section class="game-view" id="game-view" aria-label="游戏区域" hidden>
+      <div class="score-grid">
+        <section class="number-panel card" aria-labelledby="player-panel-title">
+          <div class="panel-heading">
+            <h2 class="panel-title" id="player-panel-title">玩家数字</h2>
+            <span class="panel-meta">总和 20</span>
+          </div>
+          <div class="number-strip">
+            <div class="number-cell"><span class="number-label">A</span><strong class="number-value" data-player-value>0</strong></div>
+            <div class="number-cell"><span class="number-label">B</span><strong class="number-value" data-player-value>0</strong></div>
+            <div class="number-cell"><span class="number-label">C</span><strong class="number-value" data-player-value>0</strong></div>
+            <div class="number-cell"><span class="number-label">D</span><strong class="number-value" data-player-value>0</strong></div>
+          </div>
+        </section>
+
+        <section class="number-panel computer-panel card" aria-labelledby="computer-panel-title">
+          <div class="panel-heading">
+            <h2 class="panel-title" id="computer-panel-title">电脑数字</h2>
+            <span class="panel-meta">保持隐藏</span>
+          </div>
+          <div class="number-strip">
+            <div class="number-cell"><span class="number-label">甲</span><span class="number-value" data-computer-value>?</span></div>
+            <div class="number-cell"><span class="number-label">乙</span><span class="number-value" data-computer-value>?</span></div>
+            <div class="number-cell"><span class="number-label">丙</span><span class="number-value" data-computer-value>?</span></div>
+            <div class="number-cell"><span class="number-label">丁</span><span class="number-value" data-computer-value>?</span></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="question-card card" aria-labelledby="question-title">
+        <div class="section-heading">
+          <h2 id="question-title">提问</h2>
+          <span class="panel-meta">无限次数</span>
+        </div>
+
+        <div class="mode-tabs" role="tablist" aria-label="比较模式">
+          <button class="mode-tab" id="single-mode-tab" type="button" role="tab" aria-selected="true" aria-controls="single-mode-panel" data-mode="single">单个数字比较</button>
+          <button class="mode-tab" id="pair-mode-tab" type="button" role="tab" aria-selected="false" aria-controls="pair-mode-panel" data-mode="pair" tabindex="-1">两个数字和</button>
+        </div>
+
+        <div class="mode-panel" id="single-mode-panel" role="tabpanel" aria-labelledby="single-mode-tab">
+          <div class="compare-line">
+            <div class="select-field">
+              <label for="single-player-select">玩家数字</label>
+              <select class="select-control" id="single-player-select">
+                <option value="0">A</option>
+                <option value="1">B</option>
+                <option value="2">C</option>
+                <option value="3">D</option>
+              </select>
+            </div>
+            <span class="versus" aria-hidden="true">VS</span>
+            <div class="select-field">
+              <label for="single-computer-select">电脑数字</label>
+              <select class="select-control" id="single-computer-select">
+                <option value="0">甲</option>
+                <option value="1">乙</option>
+                <option value="2">丙</option>
+                <option value="3">丁</option>
+              </select>
+            </div>
+            <button class="button button-primary compare-button" id="compare-single-button" type="button">比较</button>
+          </div>
+        </div>
+
+        <div class="mode-panel" id="pair-mode-panel" role="tabpanel" aria-labelledby="pair-mode-tab" hidden>
+          <div class="compare-line pair-line">
+            <div>
+              <span class="pair-group-label">玩家两个数字</span>
+              <div class="pair-selects">
+                <select class="select-control" id="pair-player-first" aria-label="玩家第一个数字">
+                  <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
+                </select>
+                <span class="plus-sign" aria-hidden="true">+</span>
+                <select class="select-control" id="pair-player-second" aria-label="玩家第二个数字">
+                  <option value="0">A</option><option value="1" selected>B</option><option value="2">C</option><option value="3">D</option>
+                </select>
+              </div>
+            </div>
+            <span class="versus" aria-hidden="true">VS</span>
+            <div>
+              <span class="pair-group-label">电脑两个数字</span>
+              <div class="pair-selects">
+                <select class="select-control" id="pair-computer-first" aria-label="电脑第一个数字">
+                  <option value="0">甲</option><option value="1">乙</option><option value="2">丙</option><option value="3">丁</option>
+                </select>
+                <span class="plus-sign" aria-hidden="true">+</span>
+                <select class="select-control" id="pair-computer-second" aria-label="电脑第二个数字">
+                  <option value="0">甲</option><option value="1" selected>乙</option><option value="2">丙</option><option value="3">丁</option>
+                </select>
+              </div>
+            </div>
+            <button class="button button-primary compare-button" id="compare-pair-button" type="button">比较</button>
+          </div>
+        </div>
+
+        <div class="comparison-result is-empty" id="comparison-result" aria-live="polite">等待比较</div>
+      </section>
+
+      <div class="lower-grid">
+        <section class="history-card card" aria-labelledby="history-title">
+          <div class="section-heading">
+            <h3 id="history-title">提问记录</h3>
+            <span class="history-count" id="history-count">0 条</span>
+          </div>
+          <ol class="history-list" id="history-list" aria-live="polite">
+            <li class="empty-history" id="empty-history">暂无记录</li>
+          </ol>
+        </section>
+
+        <section class="guess-card card" aria-labelledby="guess-title">
+          <div class="section-heading">
+            <h3 id="guess-title">最终猜测</h3>
+          </div>
+          <div class="guess-grid">
+            <div class="guess-field">
+              <label for="guess-jia">甲</label>
+              <input class="guess-input" id="guess-jia" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="guess-field">
+              <label for="guess-yi">乙</label>
+              <input class="guess-input" id="guess-yi" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="guess-field">
+              <label for="guess-bing">丙</label>
+              <input class="guess-input" id="guess-bing" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="guess-field">
+              <label for="guess-ding">丁</label>
+              <input class="guess-input" id="guess-ding" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+            </div>
+          </div>
+          <button class="button button-primary" id="submit-answer-button" type="button" disabled>提交答案</button>
+          <div class="answer-feedback" id="answer-feedback" aria-live="polite">请填写四个 0–20 的整数</div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="success-dialog" id="success-dialog" aria-labelledby="success-title">
+    <div class="dialog-content">
+      <div class="dialog-badge" aria-hidden="true">✓</div>
+      <h2 id="success-title">恭喜猜对！</h2>
+      <p class="dialog-copy">电脑的四个数字是：</p>
+      <div class="revealed-answer" id="revealed-answer"></div>
+      <button class="button button-primary" id="close-dialog-button" type="button">关闭</button>
+    </div>
+  </dialog>
+
+  <script id="game-script">
+    "use strict";
+
+    const PLAYER_LABELS = ["A", "B", "C", "D"];
+    const COMPUTER_LABELS = ["甲", "乙", "丙", "丁"];
+
+    const gameState = {
+      playerNumbers: [],
+      computerNumbers: [],
+      history: []
+    };
+
+    let elements = {};
+
+    /**
+     * 验证一组玩家数字是否满足游戏约束。
+     * @param {number[]} numbers 四个待验证的数字。
+     * @returns {{isValid: boolean, sum: number}}
+     */
+    function validatePlayerNumbers(numbers) {
+      const hasFourIntegers = Array.isArray(numbers)
+        && numbers.length === 4
+        && numbers.every((value) => Number.isInteger(value) && value >= 0 && value <= 20);
+      const sum = hasFourIntegers
+        ? numbers.reduce((total, value) => total + value, 0)
+        : 0;
+
+      return {
+        isValid: hasFourIntegers && sum === 20,
+        sum
+      };
+    }
+
+    /**
+     * 使用 Web Crypto 生成无模偏差的闭区间随机整数。
+     * 极少数不支持 Web Crypto 的旧浏览器会回退到 Math.random。
+     */
+    function secureRandomInteger(min, max) {
+      const range = max - min + 1;
+
+      if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+        const maximumUint32 = 0x100000000;
+        const acceptanceLimit = maximumUint32 - (maximumUint32 % range);
+        const randomBuffer = new Uint32Array(1);
+        let randomValue;
+
+        do {
+          crypto.getRandomValues(randomBuffer);
+          randomValue = randomBuffer[0];
+        } while (randomValue >= acceptanceLimit);
+
+        return min + (randomValue % range);
+      }
+
+      return min + Math.floor(Math.random() * range);
+    }
+
+    /**
+     * 随机生成电脑的四个数字。前三个独立随机，第四个补足到 20；
+     * 若补数超出允许范围，则整轮重新生成。
+     */
+    function generateComputerNumbers(randomInteger = secureRandomInteger) {
+      while (true) {
+        const first = randomInteger(0, 20);
+        const second = randomInteger(0, 20);
+        const third = randomInteger(0, 20);
+        const fourth = 20 - first - second - third;
+
+        if (fourth >= 0 && fourth <= 20) {
+          return [first, second, third, fourth];
+        }
+      }
+    }
+
+    /** 根据两个值返回唯一需要公开的大小关系。 */
+    function getComparisonSymbol(leftValue, rightValue) {
+      if (leftValue === rightValue) return "=";
+      return leftValue > rightValue ? ">" : "<";
+    }
+
+    /** 统计最终猜测中按位置完全一致的数字数量。 */
+    function countCorrectGuesses(guessNumbers, targetNumbers) {
+      return guessNumbers.reduce(
+        (count, value, index) => count + (value === targetNumbers[index] ? 1 : 0),
+        0
+      );
+    }
+
+    /** 根据标准 tablist 按键计算下一个模式标签的索引。 */
+    function getNextModeTabIndex(currentIndex, key, tabCount) {
+      if (key === "Home") return 0;
+      if (key === "End") return tabCount - 1;
+      if (key === "ArrowRight" || key === "ArrowDown") return (currentIndex + 1) % tabCount;
+      if (key === "ArrowLeft" || key === "ArrowUp") return (currentIndex - 1 + tabCount) % tabCount;
+      return currentIndex;
+    }
+
+    /** 将数字输入框转为数值；空白输入保留为 null，避免被误判为 0。 */
+    function readNumberInputs(inputElements) {
+      return inputElements.map((input) => input.value.trim() === "" ? null : Number(input.value));
+    }
+
+    /** 收集页面元素并绑定事件。 */
+    function initializeGame() {
+      elements = {
+        setupView: document.getElementById("setup-view"),
+        gameView: document.getElementById("game-view"),
+        resetButton: document.getElementById("reset-game-button"),
+        playerInputs: Array.from(document.querySelectorAll("[data-player-input]")),
+        playerSum: document.getElementById("player-sum"),
+        setupStatus: document.getElementById("setup-status"),
+        playerValidationMessage: document.getElementById("player-validation-message"),
+        startButton: document.getElementById("start-game-button"),
+        playerValues: Array.from(document.querySelectorAll("[data-player-value]")),
+        modeTabs: Array.from(document.querySelectorAll("[data-mode]")),
+        singlePanel: document.getElementById("single-mode-panel"),
+        pairPanel: document.getElementById("pair-mode-panel"),
+        singlePlayerSelect: document.getElementById("single-player-select"),
+        singleComputerSelect: document.getElementById("single-computer-select"),
+        pairPlayerFirst: document.getElementById("pair-player-first"),
+        pairPlayerSecond: document.getElementById("pair-player-second"),
+        pairComputerFirst: document.getElementById("pair-computer-first"),
+        pairComputerSecond: document.getElementById("pair-computer-second"),
+        compareSingleButton: document.getElementById("compare-single-button"),
+        comparePairButton: document.getElementById("compare-pair-button"),
+        comparisonResult: document.getElementById("comparison-result"),
+        historyList: document.getElementById("history-list"),
+        historyCount: document.getElementById("history-count"),
+        guessInputs: Array.from(document.querySelectorAll("[data-guess-input]")),
+        submitAnswerButton: document.getElementById("submit-answer-button"),
+        answerFeedback: document.getElementById("answer-feedback"),
+        successDialog: document.getElementById("success-dialog"),
+        revealedAnswer: document.getElementById("revealed-answer"),
+        closeDialogButton: document.getElementById("close-dialog-button")
+      };
+
+      elements.playerInputs.forEach((input) => input.addEventListener("input", updatePlayerValidation));
+      elements.guessInputs.forEach((input) => input.addEventListener("input", updateGuessValidation));
+      elements.modeTabs.forEach((tab) => {
+        tab.addEventListener("click", () => switchMode(tab.dataset.mode));
+        tab.addEventListener("keydown", handleModeTabKeydown);
+      });
+
+      [elements.pairPlayerFirst, elements.pairPlayerSecond].forEach((select) => {
+        select.addEventListener("change", () => updatePairOptionAvailability(elements.pairPlayerFirst, elements.pairPlayerSecond));
+      });
+      [elements.pairComputerFirst, elements.pairComputerSecond].forEach((select) => {
+        select.addEventListener("change", () => updatePairOptionAvailability(elements.pairComputerFirst, elements.pairComputerSecond));
+      });
+
+      elements.startButton.addEventListener("click", startGame);
+      elements.compareSingleButton.addEventListener("click", compareSingle);
+      elements.comparePairButton.addEventListener("click", comparePair);
+      elements.submitAnswerButton.addEventListener("click", checkAnswer);
+      elements.resetButton.addEventListener("click", resetGame);
+      elements.closeDialogButton.addEventListener("click", closeSuccessDialog);
+      elements.successDialog.addEventListener("click", handleDialogBackdropClick);
+
+      updatePairOptionAvailability(elements.pairPlayerFirst, elements.pairPlayerSecond);
+      updatePairOptionAvailability(elements.pairComputerFirst, elements.pairComputerSecond);
+      updatePlayerValidation();
+      updateGuessValidation();
+    }
+
+    /** 实时显示玩家输入总和，并控制开始按钮是否可用。 */
+    function updatePlayerValidation() {
+      const values = readNumberInputs(elements.playerInputs);
+      const finiteValues = values.filter((value) => Number.isFinite(value));
+      const visibleSum = finiteValues.reduce((sum, value) => sum + value, 0);
+      const validation = validatePlayerNumbers(values);
+      const hasInvalidNumber = values.some(
+        (value) => value !== null && (!Number.isInteger(value) || value < 0 || value > 20)
+      );
+
+      elements.playerSum.textContent = String(visibleSum);
+      elements.startButton.disabled = !validation.isValid;
+      elements.setupStatus.classList.remove("is-valid", "is-invalid");
+
+      if (validation.isValid) {
+        elements.setupStatus.classList.add("is-valid");
+        elements.playerValidationMessage.textContent = "可以开始";
+      } else if (hasInvalidNumber) {
+        elements.setupStatus.classList.add("is-invalid");
+        elements.playerValidationMessage.textContent = "每个数字须为 0–20 的整数";
+      } else if (values.some((value) => value === null)) {
+        elements.playerValidationMessage.textContent = "请填写 4 个数字";
+      } else if (visibleSum < 20) {
+        elements.playerValidationMessage.textContent = `还差 ${20 - visibleSum}`;
+      } else {
+        elements.setupStatus.classList.add("is-invalid");
+        elements.playerValidationMessage.textContent = `超出 ${visibleSum - 20}`;
+      }
+    }
+
+    /** 验证最终猜测的四个输入，只限制整数范围，不额外限制总和。 */
+    function updateGuessValidation() {
+      const guessNumbers = readNumberInputs(elements.guessInputs);
+      const isComplete = guessNumbers.length === 4
+        && guessNumbers.every((value) => Number.isInteger(value) && value >= 0 && value <= 20);
+
+      elements.submitAnswerButton.disabled = !isComplete;
+      if (!isComplete) {
+        elements.answerFeedback.className = "answer-feedback";
+        elements.answerFeedback.textContent = "请填写四个 0–20 的整数";
+      }
+    }
+
+    /** 开始新局：保存玩家输入，生成电脑数字并切换到游戏界面。 */
+    function startGame() {
+      const playerNumbers = readNumberInputs(elements.playerInputs);
+      if (!validatePlayerNumbers(playerNumbers).isValid) return;
+
+      gameState.playerNumbers = playerNumbers;
+      elements.playerValues.forEach((element, index) => {
+        element.textContent = String(gameState.playerNumbers[index]);
+      });
+
+      elements.setupView.hidden = true;
+      elements.gameView.hidden = false;
+      elements.resetButton.hidden = false;
+      resetGame();
+      elements.singlePlayerSelect.focus();
+    }
+
+    /** 在两种提问模式之间切换，同时保留各自已选内容。 */
+    function switchMode(mode) {
+      const showSingle = mode === "single";
+      elements.singlePanel.hidden = !showSingle;
+      elements.pairPanel.hidden = showSingle;
+
+      elements.modeTabs.forEach((tab) => {
+        const selected = tab.dataset.mode === mode;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+      });
+    }
+
+    /** 支持方向键、Home 和 End 在两个比较模式间移动与激活。 */
+    function handleModeTabKeydown(event) {
+      const navigationKeys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
+      if (!navigationKeys.includes(event.key)) return;
+
+      const currentIndex = elements.modeTabs.indexOf(event.currentTarget);
+      const nextIndex = getNextModeTabIndex(currentIndex, event.key, elements.modeTabs.length);
+      const nextTab = elements.modeTabs[nextIndex];
+
+      event.preventDefault();
+      switchMode(nextTab.dataset.mode);
+      nextTab.focus();
+    }
+
+    /** 单个数字比较：只拼接标签与关系，不把真实电脑数字写入页面。 */
+    function compareSingle() {
+      const playerIndex = Number(elements.singlePlayerSelect.value);
+      const computerIndex = Number(elements.singleComputerSelect.value);
+      const relation = getComparisonSymbol(
+        gameState.playerNumbers[playerIndex],
+        gameState.computerNumbers[computerIndex]
+      );
+      const record = `${PLAYER_LABELS[playerIndex]} ${relation} ${COMPUTER_LABELS[computerIndex]}`;
+
+      showComparisonResult(record);
+      addHistory(record);
+    }
+
+    /** 两数之和比较：双方均要求选择不同位置，结果仍只公开关系。 */
+    function comparePair() {
+      const playerFirst = Number(elements.pairPlayerFirst.value);
+      const playerSecond = Number(elements.pairPlayerSecond.value);
+      const computerFirst = Number(elements.pairComputerFirst.value);
+      const computerSecond = Number(elements.pairComputerSecond.value);
+
+      if (playerFirst === playerSecond || computerFirst === computerSecond) return;
+
+      const playerSum = gameState.playerNumbers[playerFirst] + gameState.playerNumbers[playerSecond];
+      const computerSum = gameState.computerNumbers[computerFirst] + gameState.computerNumbers[computerSecond];
+      const relation = getComparisonSymbol(playerSum, computerSum);
+      const record = `${PLAYER_LABELS[playerFirst]}+${PLAYER_LABELS[playerSecond]} ${relation} ${COMPUTER_LABELS[computerFirst]}+${COMPUTER_LABELS[computerSecond]}`;
+
+      showComparisonResult(record);
+      addHistory(record);
+    }
+
+    /** 更新提问区最新结果。 */
+    function showComparisonResult(record) {
+      elements.comparisonResult.textContent = record;
+      elements.comparisonResult.classList.remove("is-empty");
+    }
+
+    /** 追加一条按时间排序的历史记录，并让滚动区跟随最新记录。 */
+    function addHistory(record) {
+      gameState.history.push(record);
+
+      if (gameState.history.length === 1) {
+        elements.historyList.replaceChildren();
+      }
+
+      const item = document.createElement("li");
+      item.className = "history-item";
+
+      const index = document.createElement("span");
+      index.className = "history-index";
+      index.textContent = String(gameState.history.length).padStart(2, "0");
+
+      const text = document.createElement("span");
+      text.className = "history-text";
+      text.textContent = record;
+
+      item.append(index, text);
+      elements.historyList.append(item);
+      elements.historyCount.textContent = `${gameState.history.length} 条`;
+      elements.historyList.scrollTop = elements.historyList.scrollHeight;
+    }
+
+    /** 保证同一方的两个下拉框无法选中同一位置。 */
+    function updatePairOptionAvailability(firstSelect, secondSelect) {
+      const firstValue = firstSelect.value;
+      const secondValue = secondSelect.value;
+
+      Array.from(firstSelect.options).forEach((option) => {
+        option.disabled = option.value === secondValue;
+      });
+      Array.from(secondSelect.options).forEach((option) => {
+        option.disabled = option.value === firstValue;
+      });
+    }
+
+    /** 检查最终答案；错误时只公开正确数量，完全正确才显示真实数字。 */
+    function checkAnswer() {
+      const guessNumbers = readNumberInputs(elements.guessInputs);
+      const isComplete = guessNumbers.every(
+        (value) => Number.isInteger(value) && value >= 0 && value <= 20
+      );
+      if (!isComplete) return;
+
+      const correctCount = countCorrectGuesses(guessNumbers, gameState.computerNumbers);
+      if (correctCount === 4) {
+        showSuccessDialog();
+        return;
+      }
+
+      elements.answerFeedback.className = "answer-feedback is-wrong";
+      elements.answerFeedback.textContent = `猜错了。正确${correctCount}个。`;
+    }
+
+    /** 填充并打开成功弹窗；这是游戏中唯一公开电脑真实数字的地方。 */
+    function showSuccessDialog() {
+      elements.revealedAnswer.replaceChildren();
+      gameState.computerNumbers.forEach((value, index) => {
+        const item = document.createElement("div");
+        item.className = "revealed-item";
+
+        const label = document.createElement("span");
+        label.textContent = COMPUTER_LABELS[index];
+        const number = document.createElement("strong");
+        number.textContent = String(value);
+
+        item.append(label, number);
+        elements.revealedAnswer.append(item);
+      });
+
+      if (typeof elements.successDialog.showModal === "function") {
+        elements.successDialog.showModal();
+      } else {
+        elements.successDialog.setAttribute("open", "");
+      }
+    }
+
+    /** 关闭成功弹窗并把焦点交还给猜测区。 */
+    function closeSuccessDialog() {
+      if (typeof elements.successDialog.close === "function") {
+        elements.successDialog.close();
+      } else {
+        elements.successDialog.removeAttribute("open");
+      }
+      elements.guessInputs[0].focus();
+    }
+
+    /** 点击原生 dialog 的遮罩区域时关闭弹窗。 */
+    function handleDialogBackdropClick(event) {
+      if (event.target === elements.successDialog) closeSuccessDialog();
+    }
+
+    /**
+     * 重新开始只重置本局电脑数据和推理痕迹；玩家设置保持不变。
+     */
+    function resetGame() {
+      gameState.computerNumbers = generateComputerNumbers();
+      gameState.history = [];
+
+      elements.historyList.replaceChildren();
+      const emptyItem = document.createElement("li");
+      emptyItem.className = "empty-history";
+      emptyItem.id = "empty-history";
+      emptyItem.textContent = "暂无记录";
+      elements.historyList.append(emptyItem);
+      elements.historyCount.textContent = "0 条";
+
+      elements.comparisonResult.textContent = "等待比较";
+      elements.comparisonResult.classList.add("is-empty");
+      elements.guessInputs.forEach((input) => {
+        input.value = "";
+      });
+      elements.answerFeedback.className = "answer-feedback";
+      elements.answerFeedback.textContent = "请填写四个 0–20 的整数";
+      elements.submitAnswerButton.disabled = true;
+
+      if (elements.successDialog.open) closeSuccessDialog();
+    }
+
+    if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+      document.addEventListener("DOMContentLoaded", initializeGame);
+    }
+  </script>
+</body>
+</html>
