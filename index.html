@@ -959,28 +959,28 @@
         <section class="game-rules" id="game-rules" aria-labelledby="rules-title">
           <h3 id="rules-title">游戏规则</h3>
           <ol class="rules-list">
-            <li>双方各有四个 0–20 的整数，总和必须为 20；数字可以为 0，也可以重复。</li>
+            <li>双方各有四个 1–20 的整数，总和必须为 20；不能为 0，且不能重复。</li>
             <li>可比较单个数字，或双方各自两个不同数字之和；结果只显示大小关系。</li>
-            <li>电脑数字始终隐藏；答案错误时，只提示猜对了几个位置。</li>
+            <li>电脑数字始终隐藏；猜错只提示结果，猜中后显示总猜测次数与答案。</li>
           </ol>
         </section>
 
         <div class="setup-inputs">
           <div class="number-field">
             <label for="player-input-a">A</label>
-            <input class="number-input" id="player-input-a" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 A">
+            <input class="number-input" id="player-input-a" data-player-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 A">
           </div>
           <div class="number-field">
             <label for="player-input-b">B</label>
-            <input class="number-input" id="player-input-b" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 B">
+            <input class="number-input" id="player-input-b" data-player-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 B">
           </div>
           <div class="number-field">
             <label for="player-input-c">C</label>
-            <input class="number-input" id="player-input-c" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 C">
+            <input class="number-input" id="player-input-c" data-player-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 C">
           </div>
           <div class="number-field">
             <label for="player-input-d">D</label>
-            <input class="number-input" id="player-input-d" data-player-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 D">
+            <input class="number-input" id="player-input-d" data-player-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off" aria-label="玩家数字 D">
           </div>
         </div>
 
@@ -1110,23 +1110,23 @@
           <div class="guess-grid">
             <div class="guess-field">
               <label for="guess-jia">甲</label>
-              <input class="guess-input" id="guess-jia" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+              <input class="guess-input" id="guess-jia" data-guess-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off">
             </div>
             <div class="guess-field">
               <label for="guess-yi">乙</label>
-              <input class="guess-input" id="guess-yi" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+              <input class="guess-input" id="guess-yi" data-guess-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off">
             </div>
             <div class="guess-field">
               <label for="guess-bing">丙</label>
-              <input class="guess-input" id="guess-bing" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+              <input class="guess-input" id="guess-bing" data-guess-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off">
             </div>
             <div class="guess-field">
               <label for="guess-ding">丁</label>
-              <input class="guess-input" id="guess-ding" data-guess-input type="number" min="0" max="20" step="1" inputmode="numeric" autocomplete="off">
+              <input class="guess-input" id="guess-ding" data-guess-input type="number" min="1" max="20" step="1" inputmode="numeric" autocomplete="off">
             </div>
           </div>
           <button class="button button-primary" id="submit-answer-button" type="button" disabled>提交答案</button>
-          <div class="answer-feedback" id="answer-feedback" aria-live="polite">请填写四个 0–20 的整数</div>
+          <div class="answer-feedback" id="answer-feedback" aria-live="polite">请填写四个 1–20 的不重复整数，且总和为 20</div>
         </section>
       </div>
     </section>
@@ -1136,7 +1136,7 @@
     <div class="dialog-content">
       <div class="dialog-badge" aria-hidden="true">✓</div>
       <h2 id="success-title">恭喜猜对！</h2>
-      <p class="dialog-copy">电脑的四个数字是：</p>
+      <p class="dialog-copy" id="guess-attempt-summary"></p>
       <div class="revealed-answer" id="revealed-answer"></div>
       <button class="button button-primary" id="close-dialog-button" type="button">关闭</button>
     </div>
@@ -1151,7 +1151,8 @@
     const gameState = {
       playerNumbers: [],
       computerNumbers: [],
-      history: []
+      history: [],
+      guessAttempts: 0
     };
 
     let elements = {};
@@ -1164,13 +1165,14 @@
     function validatePlayerNumbers(numbers) {
       const hasFourIntegers = Array.isArray(numbers)
         && numbers.length === 4
-        && numbers.every((value) => Number.isInteger(value) && value >= 0 && value <= 20);
+        && numbers.every((value) => Number.isInteger(value) && value >= 1 && value <= 20);
+      const hasDistinctValues = hasFourIntegers && new Set(numbers).size === numbers.length;
       const sum = hasFourIntegers
         ? numbers.reduce((total, value) => total + value, 0)
         : 0;
 
       return {
-        isValid: hasFourIntegers && sum === 20,
+        isValid: hasFourIntegers && hasDistinctValues && sum === 20,
         sum
       };
     }
@@ -1201,17 +1203,18 @@
 
     /**
      * 随机生成电脑的四个数字。前三个独立随机，第四个补足到 20；
-     * 若补数超出允许范围，则整轮重新生成。
+     * 若补数超出允许范围或四个数字存在重复，则整轮重新生成。
      */
     function generateComputerNumbers(randomInteger = secureRandomInteger) {
       while (true) {
-        const first = randomInteger(0, 20);
-        const second = randomInteger(0, 20);
-        const third = randomInteger(0, 20);
+        const first = randomInteger(1, 20);
+        const second = randomInteger(1, 20);
+        const third = randomInteger(1, 20);
         const fourth = 20 - first - second - third;
+        const numbers = [first, second, third, fourth];
 
-        if (fourth >= 0 && fourth <= 20) {
-          return [first, second, third, fourth];
+        if (fourth >= 1 && fourth <= 20 && new Set(numbers).size === numbers.length) {
+          return numbers;
         }
       }
     }
@@ -1274,6 +1277,7 @@
         submitAnswerButton: document.getElementById("submit-answer-button"),
         answerFeedback: document.getElementById("answer-feedback"),
         successDialog: document.getElementById("success-dialog"),
+        guessAttemptSummary: document.getElementById("guess-attempt-summary"),
         revealedAnswer: document.getElementById("revealed-answer"),
         closeDialogButton: document.getElementById("close-dialog-button")
       };
@@ -1313,8 +1317,10 @@
       const visibleSum = finiteValues.reduce((sum, value) => sum + value, 0);
       const validation = validatePlayerNumbers(values);
       const hasInvalidNumber = values.some(
-        (value) => value !== null && (!Number.isInteger(value) || value < 0 || value > 20)
+        (value) => value !== null && (!Number.isInteger(value) || value < 1 || value > 20)
       );
+      const hasDuplicates = values.every((value) => Number.isInteger(value))
+        && new Set(values).size !== values.length;
 
       elements.playerSum.textContent = String(visibleSum);
       elements.startButton.disabled = !validation.isValid;
@@ -1325,9 +1331,12 @@
         elements.playerValidationMessage.textContent = "可以开始";
       } else if (hasInvalidNumber) {
         elements.setupStatus.classList.add("is-invalid");
-        elements.playerValidationMessage.textContent = "每个数字须为 0–20 的整数";
+        elements.playerValidationMessage.textContent = "每个数字须为 1–20 的整数";
       } else if (values.some((value) => value === null)) {
         elements.playerValidationMessage.textContent = "请填写 4 个数字";
+      } else if (hasDuplicates) {
+        elements.setupStatus.classList.add("is-invalid");
+        elements.playerValidationMessage.textContent = "四个数字不能重复";
       } else if (visibleSum < 20) {
         elements.playerValidationMessage.textContent = `还差 ${20 - visibleSum}`;
       } else {
@@ -1336,16 +1345,15 @@
       }
     }
 
-    /** 验证最终猜测的四个输入，只限制整数范围，不额外限制总和。 */
+    /** 最终猜测遵守与电脑答案相同的正整数、不重复和总和约束。 */
     function updateGuessValidation() {
       const guessNumbers = readNumberInputs(elements.guessInputs);
-      const isComplete = guessNumbers.length === 4
-        && guessNumbers.every((value) => Number.isInteger(value) && value >= 0 && value <= 20);
+      const isComplete = validatePlayerNumbers(guessNumbers).isValid;
 
       elements.submitAnswerButton.disabled = !isComplete;
       if (!isComplete) {
         elements.answerFeedback.className = "answer-feedback";
-        elements.answerFeedback.textContent = "请填写四个 0–20 的整数";
+        elements.answerFeedback.textContent = "请填写四个 1–20 的不重复整数，且总和为 20";
       }
     }
 
@@ -1469,26 +1477,27 @@
       });
     }
 
-    /** 检查最终答案；错误时只公开正确数量，完全正确才显示真实数字。 */
+    /** 检查最终答案；错误时不透露命中数量，完全正确才显示次数与真实数字。 */
     function checkAnswer() {
       const guessNumbers = readNumberInputs(elements.guessInputs);
-      const isComplete = guessNumbers.every(
-        (value) => Number.isInteger(value) && value >= 0 && value <= 20
-      );
-      if (!isComplete) return;
+      if (!validatePlayerNumbers(guessNumbers).isValid) return;
 
-      const correctCount = countCorrectGuesses(guessNumbers, gameState.computerNumbers);
-      if (correctCount === 4) {
+      gameState.guessAttempts += 1;
+      const isCorrect = guessNumbers.every(
+        (value, index) => value === gameState.computerNumbers[index]
+      );
+      if (isCorrect) {
         showSuccessDialog();
         return;
       }
 
       elements.answerFeedback.className = "answer-feedback is-wrong";
-      elements.answerFeedback.textContent = `猜错了。正确${correctCount}个。`;
+      elements.answerFeedback.textContent = "猜错了。";
     }
 
     /** 填充并打开成功弹窗；这是游戏中唯一公开电脑真实数字的地方。 */
     function showSuccessDialog() {
+      elements.guessAttemptSummary.textContent = `你一共进行了 ${gameState.guessAttempts} 次猜测。电脑的四个数字是：`;
       elements.revealedAnswer.replaceChildren();
       gameState.computerNumbers.forEach((value, index) => {
         const item = document.createElement("div");
@@ -1531,6 +1540,7 @@
     function resetGame() {
       gameState.computerNumbers = generateComputerNumbers();
       gameState.history = [];
+      gameState.guessAttempts = 0;
 
       elements.historyList.replaceChildren();
       const emptyItem = document.createElement("li");
@@ -1546,7 +1556,7 @@
         input.value = "";
       });
       elements.answerFeedback.className = "answer-feedback";
-      elements.answerFeedback.textContent = "请填写四个 0–20 的整数";
+      elements.answerFeedback.textContent = "请填写四个 1–20 的不重复整数，且总和为 20";
       elements.submitAnswerButton.disabled = true;
 
       if (elements.successDialog.open) closeSuccessDialog();
